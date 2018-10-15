@@ -1,20 +1,21 @@
 #!/bin/bash
+# chkconfig: 2345 90 10
+# description: PipeSocks
 
 ### BEGIN INIT INFO
-# Provides:          GoFlyway
-# Required-Start:    $network $local_fs $remote_fs
-# Required-Stop:     $network $local_fs $remote_fs
+# Provides:          PipeSocks
+# Required-Start:    $network $syslog
+# Required-Stop:     $network
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Lightweight HTTP proxy tool
-# Description:       Start or stop the GoFlyway
+# Short-Description: Lightweight SOCKS5 proxy tool
+# Description:       Start or stop the PipeSocks
 ### END INIT INFO
 
-NAME="GoFlyway"
-NAME_BIN="goflyway"
-FILE="/usr/local/goflyway"
-CONF="${FILE}/goflyway.conf"
-LOG="${FILE}/goflyway.log"
+NAME="PipeSocks"
+NAME_BIN="pipesocks"
+FILE="/usr/local/pipesocks"
+CONF="/etc/pipesocks/pipesocks.conf"
 
 Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Green_background_prefix="\033[42;37m" && Red_background_prefix="\033[41;37m" && Font_color_suffix="\033[0m"
 Info="${Green_font_prefix}[信息]${Font_color_suffix}"
@@ -30,10 +31,19 @@ check_running(){
 	fi
 }
 read_config(){
-	[[ ! -e ${CONF} ]] && echo -e "${Error} GoFlyway 配置文件不存在 !" && exit 1
-	port=`cat ${CONF}|grep "port"|awk -F "=" '{print $NF}'`
-	passwd=`cat ${CONF}|grep "passwd"|awk -F "=" '{print $NF}'`
-	proxy_pass=`cat ${CONF}|grep "proxy_pass"|awk -F "=" '{print $NF}'`
+	[[ ! -e ${CONF} ]] && echo -e "${Error} ${NAME} 配置文件不存在 !" && exit 1
+	pump_port=`cat ${CONF}|grep "pump_port"|awk -F "=" '{print $NF}'`
+	pump_passwd=`cat ${CONF}|grep "pump_passwd"|awk -F "=" '{print $NF}'`
+}
+View_User(){
+	ip=`wget -qO- -t1 -T2 ipinfo.io/ip`
+	[[ -z ${ip} ]] && ip="VPS_IP"
+	clear && echo "————————————————" && echo
+	echo -e " 你的 PipeSocks 账号信息 :" && echo
+	echo -e " I  P\t: ${Info_font_prefix}${ip}${Font_suffix}"
+	echo -e " 端口\t: ${Info_font_prefix}${pump_port}${Font_suffix}"
+	echo -e " 密码\t: ${Info_font_prefix}${pump_passwd}${Font_suffix}"
+	echo && echo "————————————————"
 }
 do_start(){
 	check_running
@@ -43,16 +53,12 @@ do_start(){
 		read_config
 		cd ${FILE}
 		echo -e "${Info} $NAME 启动中..."
-		ulimit -n 51200
-		if [[ -z ${proxy_pass} ]]; then
-			nohup ./goflyway -k="${passwd}" -l=":${port}" >> "${LOG}" 2>&1 &
-		else
-			nohup ./goflyway -k="${passwd}" -l=":${port}" -proxy-pass="${proxy_pass}" >> "${LOG}" 2>&1 &
-		fi
+		nohup ./pipesocks pump -p ${pump_port} -k ${pump_passwd} &>pipesocks.log &
 		sleep 2s
 		check_running
 		if [[ $? -eq 0 ]]; then
 			echo -e "${Info} $NAME 启动成功 !"
+			View_User
 		else
 			echo -e "${Error} $NAME 启动失败 !"
 		fi
@@ -76,6 +82,8 @@ do_stop(){
 do_status(){
 	check_running
 	if [[ $? -eq 0 ]]; then
+		read_config
+		View_User
 		echo -e "${Info} $NAME (PID ${PID}) 正在运行..."
 	else
 		echo -e "${Info} $NAME 未运行 !"
@@ -84,7 +92,6 @@ do_status(){
 }
 do_restart(){
 	do_stop
-	sleep 2s
 	do_start
 }
 case "$1" in
@@ -92,7 +99,7 @@ case "$1" in
 	do_$1
 	;;
 	*)
-	echo "使用方法: $0 { start | stop | restart | status }"
+	echo -e "使用方法: $0 { start | stop | restart | status }"
 	RETVAL=1
 	;;
 esac

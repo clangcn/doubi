@@ -5,11 +5,11 @@ export PATH
 #=================================================
 #	System Required: Debian/Ubuntu
 #	Description: ocserv AnyConnect
-#	Version: 1.0.4
+#	Version: 1.0.5
 #	Author: Toyo
 #	Blog: https://doub.io/vpnzy-7/
 #=================================================
-sh_ver="1.0.4"
+sh_ver="1.0.5"
 file="/usr/local/sbin/ocserv"
 conf_file="/etc/ocserv"
 conf="/etc/ocserv/ocserv.conf"
@@ -88,7 +88,7 @@ Download_ocserv(){
 	fi
 }
 Service_ocserv(){
-	if ! wget --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/other/ocserv_debian -O /etc/init.d/ocserv; then
+	if ! wget --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/service/ocserv_debian -O /etc/init.d/ocserv; then
 		echo -e "${Error} ocserv 服务 管理脚本下载失败 !" && over
 	fi
 	chmod +x /etc/init.d/ocserv
@@ -121,7 +121,7 @@ crl_signing_key' > ca.tmpl
 	Get_ip
 	if [[ -z "$ip" ]]; then
 		echo -e "${Error} 检测外网IP失败 !"
-		stty erase '^H' && read -p "请手动输入你的服务器外网IP:" ip
+		read -e -p "请手动输入你的服务器外网IP:" ip
 		[[ -z "${ip}" ]] && echo "取消..." && over
 	fi
 	echo -e 'cn = "'${ip}'"
@@ -148,13 +148,19 @@ Installation_dependency(){
 	if [[ ${release} = "centos" ]]; then
 		echo -e "${Error} 本脚本不支持 CentOS 系统 !" && exit 1
 	elif [[ ${release} = "debian" ]]; then
-		mv /etc/apt/sources.list /etc/apt/sources.list.bak
-		wget --no-check-certificate -O "/etc/apt/sources.list" "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/sources/us.sources.list"
-		apt-get update
-		apt-get install vim net-tools pkg-config build-essential libgnutls28-dev libwrap0-dev liblz4-dev libseccomp-dev libreadline-dev libnl-nf-3-dev libev-dev gnutls-bin -y
-		rm -rf /etc/apt/sources.list
-		mv /etc/apt/sources.list.bak /etc/apt/sources.list
-		apt-get update
+		cat /etc/issue |grep 9\..*>/dev/null
+		if [[ $? = 0 ]]; then
+			apt-get update
+			apt-get install vim net-tools pkg-config build-essential libgnutls28-dev libwrap0-dev liblz4-dev libseccomp-dev libreadline-dev libnl-nf-3-dev libev-dev gnutls-bin -y
+		else
+			mv /etc/apt/sources.list /etc/apt/sources.list.bak
+			wget --no-check-certificate -O "/etc/apt/sources.list" "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/sources/us.sources.list"
+			apt-get update
+			apt-get install vim net-tools pkg-config build-essential libgnutls28-dev libwrap0-dev liblz4-dev libseccomp-dev libreadline-dev libnl-nf-3-dev libev-dev gnutls-bin -y
+			rm -rf /etc/apt/sources.list
+			mv /etc/apt/sources.list.bak /etc/apt/sources.list
+			apt-get update
+		fi
 	else
 		apt-get update
 		apt-get install vim net-tools pkg-config build-essential libgnutls28-dev libwrap0-dev liblz4-dev libseccomp-dev libreadline-dev libnl-nf-3-dev libev-dev gnutls-bin -y
@@ -218,7 +224,7 @@ Set_ocserv(){
 	Add_iptables
 	Save_iptables
 	echo "是否重启 ocserv ? (Y/n)"
-	stty erase '^H' && read -p "(默认: Y):" yn
+	read -e -p "(默认: Y):" yn
 	[[ -z ${yn} ]] && yn="y"
 	if [[ ${yn} == [Yy] ]]; then
 		Restart_ocserv
@@ -226,13 +232,13 @@ Set_ocserv(){
 }
 Set_username(){
 	echo "请输入 要添加的VPN账号 用户名"
-	stty erase '^H' && read -p "(默认: admin):" username
+	read -e -p "(默认: admin):" username
 	[[ -z "${username}" ]] && username="admin"
 	echo && echo -e "	用户名 : ${Red_font_prefix}${username}${Font_color_suffix}" && echo
 }
 Set_passwd(){
 	echo "请输入 要添加的VPN账号 密码"
-	stty erase '^H' && read -p "(默认: doub.io):" userpass
+	read -e -p "(默认: doub.io):" userpass
 	[[ -z "${userpass}" ]] && userpass="doub.io"
 	echo && echo -e "	密码 : ${Red_font_prefix}${userpass}${Font_color_suffix}" && echo
 }
@@ -240,9 +246,9 @@ Set_tcp_port(){
 	while true
 	do
 	echo -e "请输入VPN服务端的TCP端口"
-	stty erase '^H' && read -p "(默认: 443):" set_tcp_port
+	read -e -p "(默认: 443):" set_tcp_port
 	[[ -z "$set_tcp_port" ]] && set_tcp_port="443"
-	expr ${set_tcp_port} + 0 &>/dev/null
+	echo $((${set_tcp_port}+0)) &>/dev/null
 	if [[ $? -eq 0 ]]; then
 		if [[ ${set_tcp_port} -ge 1 ]] && [[ ${set_tcp_port} -le 65535 ]]; then
 			echo && echo -e "	TCP端口 : ${Red_font_prefix}${set_tcp_port}${Font_color_suffix}" && echo
@@ -259,9 +265,9 @@ Set_udp_port(){
 	while true
 	do
 	echo -e "请输入VPN服务端的UDP端口"
-	stty erase '^H' && read -p "(默认: ${set_tcp_port}):" set_udp_port
+	read -e -p "(默认: ${set_tcp_port}):" set_udp_port
 	[[ -z "$set_udp_port" ]] && set_udp_port="${set_tcp_port}"
-	expr ${set_udp_port} + 0 &>/dev/null
+	echo $((${set_udp_port}+0)) &>/dev/null
 	if [[ $? -eq 0 ]]; then
 		if [[ ${set_udp_port} -ge 1 ]] && [[ ${set_udp_port} -le 65535 ]]; then
 			echo && echo -e "	TCP端口 : ${Red_font_prefix}${set_udp_port}${Font_color_suffix}" && echo
@@ -329,7 +335,7 @@ Del_User(){
 	List_User
 	[[ ${User_num} == 1 ]] && echo -e "${Error} 当前仅剩一个账号配置，无法删除 !" && exit 1
 	echo -e "请输入要删除的VPN账号的用户名"
-	stty erase '^H' && read -p "(默认取消):" Del_username
+	read -e -p "(默认取消):" Del_username
 	[[ -z "${Del_username}" ]] && echo "已取消..." && exit 1
 	user_status=$(cat "${passwd_file}"|grep "${Del_username}"':*:')
 	[[ -z ${user_status} ]] && echo -e "${Error} 用户名不存在 ! [${Del_username}]" && exit 1
@@ -344,7 +350,7 @@ Del_User(){
 Modify_User_disabled(){
 	List_User
 	echo -e "请输入要启用/禁用的VPN账号的用户名"
-	stty erase '^H' && read -p "(默认取消):" Modify_username
+	read -e -p "(默认取消):" Modify_username
 	[[ -z "${Modify_username}" ]] && echo "已取消..." && exit 1
 	user_status=$(cat "${passwd_file}"|grep "${Modify_username}"':*:')
 	[[ -z ${user_status} ]] && echo -e "${Error} 用户名不存在 ! [${Modify_username}]" && exit 1
@@ -379,7 +385,7 @@ Set_Pass(){
  ${Green_font_prefix} 3.${Font_color_suffix} 启用/禁用 账号配置
  
  注意：添加/修改/删除 账号配置后，VPN服务端会实时读取，无需重启服务端 !" && echo
-	stty erase '^H' && read -p "(默认: 取消):" set_num
+	read -e -p "(默认: 取消):" set_num
 	[[ -z "${set_num}" ]] && echo "已取消..." && exit 1
 	if [[ ${set_num} == "0" ]]; then
 		List_User
@@ -408,14 +414,14 @@ View_Config(){
 }
 View_Log(){
 	[[ ! -e ${log_file} ]] && echo -e "${Error} ocserv 日志文件不存在 !" && exit 1
-	echo && echo -e "${Tip} 按 ${Red_font_prefix}Ctrl+C${Font_color_suffix} 终止查看日志" && echo
+	echo && echo -e "${Tip} 按 ${Red_font_prefix}Ctrl+C${Font_color_suffix} 终止查看日志" && echo -e "如果需要查看完整日志内容，请用 ${Red_font_prefix}cat ${log_file}${Font_color_suffix} 命令。" && echo
 	tail -f ${log_file}
 }
 Uninstall_ocserv(){
 	check_installed_status "un"
 	echo "确定要卸载 ocserv ? (y/N)"
 	echo
-	stty erase '^H' && read -p "(默认: n):" unyn
+	read -e -p "(默认: n):" unyn
 	[[ -z ${unyn} ]] && unyn="n"
 	if [[ ${unyn} == [Yy] ]]; then
 		check_pid
@@ -470,20 +476,25 @@ Set_iptables(){
 	ifconfig_status=$(ifconfig)
 	if [[ -z ${ifconfig_status} ]]; then
 		echo -e "${Error} ifconfig 未安装 !"
-		stty erase '^H' && read -p "请手动输入你的网卡名(一般为 eth0，OpenVZ 虚拟化则为 venet0):" Network_card
+		read -e -p "请手动输入你的网卡名(一般情况下，网卡名为 eth0，Debian9 则为 ens3，CentOS Ubuntu 最新版本可能为 enpXsX(X代表数字或字母)，OpenVZ 虚拟化则为 venet0):" Network_card
 		[[ -z "${Network_card}" ]] && echo "取消..." && exit 1
 	else
 		Network_card=$(ifconfig|grep "eth0")
 		if [[ ! -z ${Network_card} ]]; then
 			Network_card="eth0"
 		else
-			Network_card=$(ifconfig|grep "venet0")
+			Network_card=$(ifconfig|grep "ens3")
 			if [[ ! -z ${Network_card} ]]; then
-				Network_card="venet0"
+				Network_card="ens3"
 			else
-				ifconfig
-				stty erase '^H' && read -p "检测到本服务器的网卡非 eth0 和 venet0 请根据上面输出的网卡信息手动输入你的网卡名:" Network_card
-				[[ -z "${Network_card}" ]] && echo "取消..." && exit 1
+				Network_card=$(ifconfig|grep "venet0")
+				if [[ ! -z ${Network_card} ]]; then
+					Network_card="venet0"
+				else
+					ifconfig
+					read -e -p "检测到本服务器的网卡非 eth0 \ ens3(Debian9) \ venet0(OpenVZ) \ enpXsX(CentOS Ubuntu 最新版本，X代表数字或字母)，请根据上面输出的网卡信息手动输入你的网卡名:" Network_card
+					[[ -z "${Network_card}" ]] && echo "取消..." && exit 1
+				fi
 			fi
 		fi
 	fi
@@ -494,31 +505,14 @@ Set_iptables(){
 	chmod +x /etc/network/if-pre-up.d/iptables
 }
 Update_Shell(){
-	echo -e "当前版本为 [ ${sh_ver} ]，开始检测最新版本..."
-	sh_new_ver=$(wget --no-check-certificate -qO- "https://softs.loan/Bash/ocserv.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="softs"
-	[[ -z ${sh_new_ver} ]] && sh_new_ver=$(wget --no-check-certificate -qO- "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ocserv.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
-	[[ -z ${sh_new_ver} ]] && echo -e "${Error} 检测最新版本失败 !" && exit 0
-	if [[ ${sh_new_ver} != ${sh_ver} ]]; then
-		echo -e "发现新版本[ ${sh_new_ver} ]，是否更新？[Y/n]"
-		stty erase '^H' && read -p "(默认: y):" yn
-		[[ -z "${yn}" ]] && yn="y"
-		if [[ ${yn} == [Yy] ]]; then
-			if [[ -e "/etc/init.d/ocserv" ]]; then
-				rm -rf /etc/init.d/ocserv
-				Service_ocserv
-			fi
-			if [[ $sh_new_type == "softs" ]]; then
-				wget -N --no-check-certificate https://softs.loan/Bash/ocserv.sh && chmod +x ocserv.sh
-			else
-				wget -N --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ocserv.sh && chmod +x ocserv.sh
-			fi
-			echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] !"
-		else
-			echo && echo "	已取消..." && echo
-		fi
-	else
-		echo -e "当前已是最新版本[ ${sh_new_ver} ] !"
+	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ocserv.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
+	[[ -z ${sh_new_ver} ]] && echo -e "${Error} 无法链接到 Github !" && exit 0
+	if [[ -e "/etc/init.d/ocserv" ]]; then
+		rm -rf /etc/init.d/ocserv
+		Service_ocserv
 	fi
+	wget -N --no-check-certificate "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ocserv.sh" && chmod +x ocserv.sh
+	echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] !(注意：因为更新方式为直接覆盖当前运行的脚本，所以可能下面会提示一些报错，无视即可)" && exit 0
 }
 check_sys
 [[ ${release} != "debian" ]] && [[ ${release} != "ubuntu" ]] && echo -e "${Error} 本脚本不支持当前系统 ${release} !" && exit 1
@@ -550,7 +544,7 @@ else
 	echo -e " 当前状态: ${Red_font_prefix}未安装${Font_color_suffix}"
 fi
 echo
-stty erase '^H' && read -p " 请输入数字 [0-9]:" num
+read -e -p " 请输入数字 [0-9]:" num
 case "$num" in
 	0)
 	Update_Shell

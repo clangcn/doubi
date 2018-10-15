@@ -60,14 +60,14 @@ Download_adbyby(){
 }
 Service_adbyby(){
 	if [[ ${release} = "centos" ]]; then
-		if ! wget --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/other/adbyby_centos -O /etc/init.d/adbyby; then
+		if ! wget --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/service/adbyby_centos -O /etc/init.d/adbyby; then
 			echo -e "${Error} ADbyby服务 管理脚本下载失败 !" && exit 1
 		fi
 		chmod +x /etc/init.d/adbyby
 		chkconfig --add adbyby
 		chkconfig adbyby on
 	else
-		if ! wget --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/other/adbyby_debian -O /etc/init.d/adbyby; then
+		if ! wget --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/service/adbyby_debian -O /etc/init.d/adbyby; then
 			echo -e "${Error} ADbyby服务 管理脚本下载失败 !" && exit 1
 		fi
 		chmod +x /etc/init.d/adbyby
@@ -130,7 +130,7 @@ Uninstall_adbyby(){
 	check_installed_status
 	echo "确定要卸载 ADbyby ? (y/N)"
 	echo
-	stty erase '^H' && read -p "(默认: n):" unyn
+	read -e -p "(默认: n):" unyn
 	[[ -z ${unyn} ]] && unyn="n"
 	if [[ ${unyn} == [Yy] ]]; then
 		check_pid
@@ -195,7 +195,7 @@ else
 	echo -e " 当前状态: ${Red_font_prefix}未安装${Font_color_suffix}"
 fi
 echo
-stty erase '^H' && read -p " 请输入数字 [1-8]:" num
+read -e -p " 请输入数字 [1-8]:" num
 case "$num" in
 	1)
 	Install_adbyby

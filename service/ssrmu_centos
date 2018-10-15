@@ -1,21 +1,21 @@
 #!/bin/bash
+# chkconfig: 2345 90 10
+# description: ShadowsocksR
 
 ### BEGIN INIT INFO
-# Provides:          ServerStatus-Server
-# Required-Start:    $network $local_fs $remote_fs
-# Required-Stop:     $network $local_fs $remote_fs
+# Provides:          ShadowsocksR
+# Required-Start:    $network $syslog
+# Required-Stop:     $network
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Server status monitoring
-# Description:       Start or stop the ServerStatus Server server
+# Short-Description: Lightweight SOCKS5 proxy tool
+# Description:       Start or stop the ShadowsocksR mudbjson server
 ### END INIT INFO
 
-NAME="ServerStatus Server"
-NAME_BIN="sergate"
-SERVER_BIN="/usr/local/ServerStatus/server"
-WEB_BIN="/usr/local/ServerStatus/web"
-CONF="/usr/local/ServerStatus/server/config.json"
-CONF1="/usr/local/ServerStatus/server/config.conf"
+NAME="ShadowsocksR"
+NAME_BIN="server.py"
+FOLDER="/usr/local/shadowsocksr"
+BIN="/usr/local/shadowsocksr/server.py"
 Info_font_prefix="\033[32m" && Error_font_prefix="\033[31m" && Info_background_prefix="\033[42;37m" && Error_background_prefix="\033[41;37m" && Font_suffix="\033[0m"
 RETVAL=0
 
@@ -27,26 +27,20 @@ check_running(){
 		return 1
 	fi
 }
-Read_config(){
-	if [[ -e "${CONF1}" ]]; then
-		port="$(cat "${CONF1}"|grep "PORT = "|awk '{print $3}')"
-	else
-		port="35601"
-	fi
-}
 do_start(){
 	check_running
 	if [[ $? -eq 0 ]]; then
-	echo -e "${Info_font_prefix}[信息]${Font_suffix} $NAME (PID ${PID}) 正在运行..." && exit 0
+		echo -e "${Info_font_prefix}[信息]${Font_suffix} $NAME (PID ${PID}) 正在运行..." && exit 0
 	else
-		Read_config
-		cd "${SERVER_BIN}"
-		ulimit -n 51200
-		nohup "./$NAME_BIN" --config="$CONF" --web-dir="$WEB_BIN" --port=${port} > /tmp/serverstatus_server.log 2>&1 &
+		cd ${FOLDER}
+		#python_ver=$(ls /usr/bin|grep -e "^python[23]\.[1-9]\+$"|tail -1)
+		python_ver="python"
+		ulimit -n 512000
+		nohup "${python_ver}" "$BIN" a >> ssserver.log 2>&1 &
 		sleep 2s
 		check_running
 		if [[ $? -eq 0 ]]; then
-			echo -e "${Info_font_prefix}[信息]${Font_suffix} $NAME 启动成功[监听端口：${port}] !"
+			echo -e "${Info_font_prefix}[信息]${Font_suffix} $NAME 启动成功 !"
 		else
 			echo -e "${Error_font_prefix}[错误]${Font_suffix} $NAME 启动失败 !"
 		fi
@@ -60,10 +54,10 @@ do_stop(){
 		if [[ $RETVAL -eq 0 ]]; then
 			echo -e "${Info_font_prefix}[信息]${Font_suffix} $NAME 停止成功 !"
 		else
-			echo -e "${Error_font_prefix}[错误]${Font_suffix}$NAME 停止失败 !"
+			echo -e "${Error_font_prefix}[错误]${Font_suffix} $NAME 停止失败 !"
 		fi
 	else
-		echo -e "${Info_font_prefix}[信息]${Font_suffix} $NAME 未运行 !"
+		echo -e "${Info_font_prefix}[信息]${Font_suffix} $NAME 未运行"
 		RETVAL=1
 	fi
 }
@@ -85,7 +79,7 @@ case "$1" in
 	do_$1
 	;;
 	*)
-	echo "使用方法: $0 { start | stop | restart | status }"
+	echo -e "使用方法: $0 { start | stop | restart | status }"
 	RETVAL=1
 	;;
 esac

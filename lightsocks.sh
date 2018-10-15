@@ -71,7 +71,7 @@ check_new_ver(){
 	lightsocks_new_ver=$(wget --no-check-certificate -qO- https://github.com/gwuhaolin/lightsocks/releases/latest | grep "<title>" | sed -r 's/.*Release (.+) · gwuhaolin.*/\1/')
 	if [[ -z ${lightsocks_new_ver} ]]; then
 		echo -e "${Error} Lightsocks 最新版本获取失败，请手动获取最新版本号[ https://github.com/gwuhaolin/lightsocks/releases/latest ]"
-		stty erase '^H' && read -p "请输入版本号 [ 格式是日期 , 如 1.0.6 ] :" lightsocks_new_ver
+		read -e -p "请输入版本号 [ 格式是日期 , 如 1.0.6 ] :" lightsocks_new_ver
 		[[ -z "${lightsocks_new_ver}" ]] && echo "取消..." && exit 1
 	else
 		echo -e "${Info} 检测到 Lightsocks 最新版本为 [ ${lightsocks_new_ver} ]"
@@ -105,14 +105,14 @@ Download_lightsocks(){
 }
 Service_lightsocks(){
 	if [[ ${release} = "centos" ]]; then
-		if ! wget --no-check-certificate "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/other/lightsocks_centos" -O /etc/init.d/lightsocks; then
+		if ! wget --no-check-certificate "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/service/lightsocks_centos" -O /etc/init.d/lightsocks; then
 			echo -e "${Error} Lightsocks服务 管理脚本下载失败 !" && rm -rf "${file}" && exit 1
 		fi
 		chmod +x "/etc/init.d/lightsocks"
 		chkconfig --add lightsocks
 		chkconfig lightsocks on
 	else
-		if ! wget --no-check-certificate "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/other/lightsocks_debian" -O /etc/init.d/lightsocks; then
+		if ! wget --no-check-certificate "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/service/lightsocks_debian" -O /etc/init.d/lightsocks; then
 			echo -e "${Error} Lightsocks服务 管理脚本下载失败 !" && rm -rf "${file}" && exit 1
 		fi
 		chmod +x "/etc/init.d/lightsocks"
@@ -168,9 +168,9 @@ Set_port(){
 	while true
 		do
 		echo -e "请输入 Lightsocks 端口 [1-65535]（端口不能重复，避免冲突）"
-		stty erase '^H' && read -p "(默认: 随机端口):" ls_port
+		read -e -p "(默认: 随机端口):" ls_port
 		[[ -z "${ls_port}" ]] && ls_port=$(Generate_the_port 443 65500)
-		expr ${ls_port} + 0 &>/dev/null
+		echo $((${ls_port}+0)) &>/dev/null
 		if [[ $? -eq 0 ]]; then
 			if [[ ${ls_port} -ge 1 ]] && [[ ${ls_port} -le 65535 ]]; then
 				echo && echo "========================"
@@ -194,7 +194,7 @@ Set_lightsocks(){
  ${Green_font_prefix}3.${Font_color_suffix}  监控 运行状态
  
  ${Tip} 因为 Lightsocks 限制，所以密码只能自动生成 !" && echo
-	stty erase '^H' && read -p "(默认: 取消):" ls_modify
+	read -e -p "(默认: 取消):" ls_modify
 	[[ -z "${ls_modify}" ]] && echo "已取消..." && exit 1
 	if [[ ${ls_modify} == "1" ]]; then
 		Modify_user "port"
@@ -228,7 +228,7 @@ Modify_config_password(){
 	password_num=$(cat "${lightsocks_conf}"|grep -n '"password":'|awk -F ':' '{print $1}')
 	if [[ ${password_num} -gt 0 ]];then
 		sed -i "${password_num}d" ${lightsocks_conf}
-		password_num_1=$(expr $password_num - 1)
+		password_num_1=$(echo $((${password_num}-1)))
 		sed -i "${password_num_1}s/,//g" ${lightsocks_conf}
 	else
 		echo -e "${Error} 配置文件修改错误！"
@@ -291,7 +291,7 @@ Uninstall_lightsocks(){
 	check_installed_status
 	echo "确定要卸载 Lightsocks ? (y/N)"
 	echo
-	stty erase '^H' && read -p "(默认: n):" unyn
+	read -e -p "(默认: n):" unyn
 	[[ -z ${unyn} ]] && unyn="n"
 	if [[ ${unyn} == [Yy] ]]; then
 		check_pid
@@ -351,7 +351,7 @@ lightsocks_link(){
 View_Log(){
 	check_installed_status
 	[[ ! -e ${lightsocks_log} ]] && echo -e "${Error} Lightsocks 日志文件不存在 !" && exit 1
-	echo && echo -e "${Tip} 按 ${Red_font_prefix}Ctrl+C${Font_color_suffix} 终止查看日志(正常情况下是没有多少日志输出的)" && echo
+	echo && echo -e "${Tip} 按 ${Red_font_prefix}Ctrl+C${Font_color_suffix} 终止查看日志(正常情况下是没有多少日志输出的)" && echo -e "如果需要查看完整日志内容，请用 ${Red_font_prefix}cat ${lightsocks_log}${Font_color_suffix} 命令。" && echo
 	tail -f ${lightsocks_log}
 }
 # 显示 连接信息
@@ -402,7 +402,7 @@ View_user_connection_info(){
 	echo && echo -e "请选择要显示的格式：
  ${Green_font_prefix}1.${Font_color_suffix} 显示 IP 格式
  ${Green_font_prefix}2.${Font_color_suffix} 显示 IP+IP归属地 格式" && echo
-	stty erase '^H' && read -p "(默认: 1):" lightsocks_connection_info
+	read -e -p "(默认: 1):" lightsocks_connection_info
 	[[ -z "${lightsocks_connection_info}" ]] && lightsocks_connection_info="1"
 	if [[ "${lightsocks_connection_info}" == "1" ]]; then
 		View_user_connection_info_1 ""
@@ -449,7 +449,7 @@ Set_crontab_monitor_lightsocks(){
 	if [[ -z "${crontab_monitor_lightsocks_status}" ]]; then
 		echo && echo -e "当前监控模式: ${Green_font_prefix}未开启${Font_color_suffix}" && echo
 		echo -e "确定要开启 ${Green_font_prefix}Lightsocks 服务端运行状态监控${Font_color_suffix} 功能吗？(当进程关闭则自动启动SSR服务端)[Y/n]"
-		stty erase '^H' && read -p "(默认: y):" crontab_monitor_lightsocks_status_ny
+		read -e -p "(默认: y):" crontab_monitor_lightsocks_status_ny
 		[[ -z "${crontab_monitor_lightsocks_status_ny}" ]] && crontab_monitor_lightsocks_status_ny="y"
 		if [[ ${crontab_monitor_lightsocks_status_ny} == [Yy] ]]; then
 			crontab_monitor_lightsocks_cron_start
@@ -459,7 +459,7 @@ Set_crontab_monitor_lightsocks(){
 	else
 		echo && echo -e "当前监控模式: ${Green_font_prefix}已开启${Font_color_suffix}" && echo
 		echo -e "确定要关闭 ${Green_font_prefix}Lightsocks 服务端运行状态监控${Font_color_suffix} 功能吗？(当进程关闭则自动启动SSR服务端)[y/N]"
-		stty erase '^H' && read -p "(默认: n):" crontab_monitor_lightsocks_status_ny
+		read -e -p "(默认: n):" crontab_monitor_lightsocks_status_ny
 		[[ -z "${crontab_monitor_lightsocks_status_ny}" ]] && crontab_monitor_lightsocks_status_ny="n"
 		if [[ ${crontab_monitor_lightsocks_status_ny} == [Yy] ]]; then
 			crontab_monitor_lightsocks_cron_stop
@@ -537,31 +537,14 @@ Set_iptables(){
 	fi
 }
 Update_Shell(){
-	echo -e "当前版本为 [ ${sh_ver} ]，开始检测最新版本..."
-	sh_new_ver=$(wget --no-check-certificate -qO- "https://softs.loan/Bash/lightsocks.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="softs"
-	[[ -z ${sh_new_ver} ]] && sh_new_ver=$(wget --no-check-certificate -qO- "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/lightsocks.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
-	[[ -z ${sh_new_ver} ]] && echo -e "${Error} 检测最新版本失败 !" && exit 0
-	if [[ ${sh_new_ver} != ${sh_ver} ]]; then
-		echo -e "发现新版本[ ${sh_new_ver} ]，是否更新？[Y/n]"
-		stty erase '^H' && read -p "(默认: y):" yn
-		[[ -z "${yn}" ]] && yn="y"
-		if [[ ${yn} == [Yy] ]]; then
-			if [[ -e "/etc/init.d/lightsocks" ]]; then
-				rm -rf /etc/init.d/lightsocks
-				Service_lightsocks
-			fi
-			if [[ ${sh_new_type} == "softs" ]]; then
-				wget -N --no-check-certificate https://softs.loan/Bash/lightsocks.sh && chmod +x lightsocks.sh
-			else
-				wget -N --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/lightsocks.sh && chmod +x lightsocks.sh
-			fi
-			echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] !"
-		else
-			echo && echo "	已取消..." && echo
-		fi
-	else
-		echo -e "当前已是最新版本[ ${sh_new_ver} ] !"
+	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/lightsocks.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
+	[[ -z ${sh_new_ver} ]] && echo -e "${Error} 无法链接到 Github !" && exit 0
+	if [[ -e "/etc/init.d/lightsocks" ]]; then
+		rm -rf /etc/init.d/lightsocks
+		Service_lightsocks
 	fi
+	wget -N --no-check-certificate "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/lightsocks.sh" && chmod +x lightsocks.sh
+	echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] !(注意：因为更新方式为直接覆盖当前运行的脚本，所以可能下面会提示一些报错，无视即可)" && exit 0
 }
 check_sys
 action=$1
@@ -597,7 +580,7 @@ else
 		echo -e " 当前状态: ${Red_font_prefix}未安装${Font_color_suffix}"
 	fi
 	echo
-	stty erase '^H' && read -p " 请输入数字 [0-10]:" num
+	read -e -p " 请输入数字 [0-10]:" num
 	case "$num" in
 		0)
 		Update_Shell

@@ -47,7 +47,7 @@ check_installed_server_status(){
 }
 set_config_ip(){
 	echo "请输入 ShadowsocksR 账号服务器公网IP"
-	stty erase '^H' && read -p "(默认取消):" ip
+	read -e -p "(默认取消):" ip
 	[[ -z "${ip}" ]] && echo "已取消..." && exit 1
 	echo && echo -e "	I   P : ${Red_font_prefix}${ip}${Font_color_suffix}" && echo
 }
@@ -55,9 +55,9 @@ set_config_port(){
 	while true
 	do
 	echo -e "请输入 ShadowsocksR 账号端口"
-	stty erase '^H' && read -p "(默认: 2333):" port
+	read -e -p "(默认: 2333):" port
 	[[ -z "$port" ]] && port="2333"
-	expr ${port} + 0 &>/dev/null
+	echo $((${port}+0)) &>/dev/null
 	if [[ $? -eq 0 ]]; then
 		if [[ ${port} -ge 1 ]] && [[ ${port} -le 65535 ]]; then
 			echo && echo -e "	端口 : ${Red_font_prefix}${port}${Font_color_suffix}" && echo
@@ -72,7 +72,7 @@ set_config_port(){
 }
 set_config_password(){
 	echo "请输入 ShadowsocksR 账号密码"
-	stty erase '^H' && read -p "(默认: doub.io):" passwd
+	read -e -p "(默认: doub.io):" passwd
 	[[ -z "${passwd}" ]] && passwd="doub.io"
 	echo && echo -e "	密码 : ${Red_font_prefix}${passwd}${Font_color_suffix}" && echo
 }
@@ -100,7 +100,7 @@ set_config_method(){
  ${Green_font_prefix}15.${Font_color_suffix} chacha20
  ${Green_font_prefix}16.${Font_color_suffix} chacha20-ietf
  ${Tip} salsa20/chacha20-*系列加密方式，需要额外安装依赖 libsodium ，否则会无法启动ShadowsocksR !" && echo
-	stty erase '^H' && read -p "(默认: 5. aes-128-ctr):" method
+	read -e -p "(默认: 5. aes-128-ctr):" method
 	[[ -z "${method}" ]] && method="5"
 	if [[ ${method} == "1" ]]; then
 		method="none"
@@ -146,7 +146,7 @@ set_config_protocol(){
  ${Green_font_prefix}3.${Font_color_suffix} auth_aes128_md5
  ${Green_font_prefix}4.${Font_color_suffix} auth_aes128_sha1
  ${Green_font_prefix}5.${Font_color_suffix} auth_chain_a" && echo
-	stty erase '^H' && read -p "(默认: 2. auth_sha1_v4):" protocol
+	read -e -p "(默认: 2. auth_sha1_v4):" protocol
 	[[ -z "${protocol}" ]] && protocol="2"
 	if [[ ${protocol} == "1" ]]; then
 		protocol="origin"
@@ -170,7 +170,7 @@ set_config_obfs(){
  ${Green_font_prefix}3.${Font_color_suffix} http_post
  ${Green_font_prefix}4.${Font_color_suffix} random_head
  ${Green_font_prefix}5.${Font_color_suffix} tls1.2_ticket_auth" && echo
-	stty erase '^H' && read -p "(默认: 5. tls1.2_ticket_auth):" obfs
+	read -e -p "(默认: 5. tls1.2_ticket_auth):" obfs
 	[[ -z "${obfs}" ]] && obfs="5"
 	if [[ ${obfs} == "1" ]]; then
 		obfs="plain"
@@ -189,7 +189,7 @@ set_config_obfs(){
 }
 set_config_like(){
 	echo "请输入 ShadowsocksR 的链接(SS/SSR链接皆可，如 ss://xxxx ssr://xxxx)"
-	stty erase '^H' && read -p "(默认回车取消):" Like
+	read -e -p "(默认回车取消):" Like
 	[[ -z "${Like}" ]] && echo "已取消..." && exit 1
 	echo && echo -e "	链接 : ${Red_font_prefix}${Like}${Font_color_suffix}" && echo
 }
@@ -197,7 +197,7 @@ set_config_user(){
 	echo -e "请输入选择输入方式
  ${Green_font_prefix}1.${Font_color_suffix} 输入ShadowsocksR账号全部信息(Shadowsocks原版也可以)
  ${Green_font_prefix}2.${Font_color_suffix} 输入ShadowsocksR账号的 SSR链接(Shadowsocks原版也可以)"
-	stty erase '^H' && read -p "(默认:2):" enter_type
+	read -e -p "(默认:2):" enter_type
 	[[ -z "${enter_type}" ]] && enter_type="2"
 	if [[ ${enter_type} == "1" ]]; then
 		echo -e "下面依次开始输入要检测可用性的 ShadowsocksR账号信息。" && echo
@@ -218,20 +218,20 @@ set_config_user(){
 }
 set_config_name(){
 	echo "请输入 ShadowsocksR 账号的名称(用于区分，取个名字，可重复)"
-	stty erase '^H' && read -p "(默认取消):" Config_Name
+	read -e -p "(默认取消):" Config_Name
 	[[ -z "${Config_Name}" ]] && echo "已取消..." && exit 1
 	echo && echo -e "	名称 : ${Red_font_prefix}${Config_Name}${Font_color_suffix}" && echo
 }
 set_config_location(){
 	echo "请输入 ShadowsocksR 账号的位置(用于区分，可重复)"
-	stty erase '^H' && read -p "(默认取消):" Config_Location
+	read -e -p "(默认取消):" Config_Location
 	[[ -z "${Config_Location}" ]] && echo "已取消..." && exit 1
 	echo && echo -e "	位置 : ${Red_font_prefix}${Config_Location}${Font_color_suffix}" && echo
 }
 Set_server(){
 	echo -e "请输入 SSRStatus 网站要设置的 域名[server]
 默认为本机IP为域名，例如输入: toyoo.ml，如果要使用本机IP，请留空直接回车"
-	stty erase '^H' && read -p "(默认: 本机IP):" server_s
+	read -e -p "(默认: 本机IP):" server_s
 	[[ -z "$server_s" ]] && server_s=""
 	
 	echo && echo -e "	IP/域名[server]: ${Red_background_prefix} ${server_s} ${Font_color_suffix}" && echo
@@ -240,9 +240,9 @@ Set_server_port(){
 	while true
 		do
 		echo -e "请输入 SSRStatus 网站要设置的 域名/IP的端口[1-65535]（如果是域名的话，一般建议用 http 80 端口）"
-		stty erase '^H' && read -p "(默认: 8888):" server_port_s
+		read -e -p "(默认: 8888):" server_port_s
 		[[ -z "$server_port_s" ]] && server_port_s="8888"
-		expr ${server_port_s} + 0 &>/dev/null
+		echo $((${server_port_s}+0)) &>/dev/null
 		if [[ $? -eq 0 ]]; then
 			if [[ ${server_port_s} -ge 1 ]] && [[ ${server_port_s} -le 65535 ]]; then
 				echo && echo -e "	IP/域名[server]: ${Red_background_prefix} ${server_port_s} ${Font_color_suffix}" && echo
@@ -266,7 +266,7 @@ Set_crontab(){
  ${Green_font_prefix}7.${Font_color_suffix} 1小时
  ${Green_font_prefix}8.${Font_color_suffix} 2小时
  ${Green_font_prefix}9.${Font_color_suffix} 自定义输入" && echo
-	stty erase '^H' && read -p "(默认: 2. 10分钟):" Crontab_time
+	read -e -p "(默认: 2. 10分钟):" Crontab_time
 	[[ -z "${Crontab_time}" ]] && Crontab_time="2"
 	if [[ ${Crontab_time} == "1" ]]; then
 		Crontab_time="*/5 * * * *"
@@ -301,7 +301,7 @@ Set_crontab_customize(){
  ${Green_font_prefix} 10 * * * * ${Font_color_suffix} 代表每小时的第10分 检测一次
  ${Green_font_prefix} * 2 * * * ${Font_color_suffix} 代表每天的第2点 检测一次
  ${Green_font_prefix} 0 0 2 * * ${Font_color_suffix} 代表每2天的0点0分 检测一次" && echo
-	stty erase '^H' && read -p "(默认: */10 * * * *):" Crontab_time
+	read -e -p "(默认: */10 * * * *):" Crontab_time
 	[[ -z "${Crontab_time}" ]] && Crontab_time="*/10 * * * *"
 }
 GO(){
@@ -516,9 +516,9 @@ Test_one(){
 	while true
 	do
 	echo -e "请选择你要单独测试的账号序号"
-	stty erase '^H' && read -p "(默认取消):" Test_one_num
+	read -e -p "(默认取消):" Test_one_num
 	[[ -z "${Test_one_num}" ]] && echo "已取消..." && exit 1
-	expr ${Test_one_num} + 0 &>/dev/null
+	echo $((${Test_one_num}+0)) &>/dev/null
 	if [[ $? -eq 0 ]]; then
 		if [[ ${Test_one_num} -ge 1 ]] && [[ ${Test_one_num} -le ${Like_num} ]]; then
 			analysis_type="add" && Analysis_Config "${Test_one_num}"
@@ -535,6 +535,7 @@ Test_one(){
 }
 View_log(){
 	[[ ! -e ${log_file} ]] && echo -e "${Error} 找不到 日志文件！(${log_file})"
+	echo && echo -e "${Tip} 按 ${Red_font_prefix}Ctrl+C${Font_color_suffix} 终止查看日志" && echo -e "如果需要查看完整日志内容，请用 ${Red_font_prefix}cat ${log_file}${Font_color_suffix} 命令。" && echo
 	cat "${log_file}"
 }
 Set_SSRStatus(){
@@ -547,7 +548,7 @@ Set_SSRStatus(){
 ————————
  ${Green_font_prefix} 4.${Font_color_suffix} 启用/禁用 账号配置
  注意：添加/修改/删除 账号配置后，不会立即更新，需要自动(定时)/手动检测一次所有账号，网页才会更新 !" && echo
-	stty erase '^H' && read -p "(默认: 取消):" server_num
+	read -e -p "(默认: 取消):" server_num
 	[[ -z "${server_num}" ]] && echo "已取消..." && exit 1
 	if [[ ${server_num} == "1" ]]; then
 		Add_SSRStatus
@@ -593,9 +594,9 @@ Del_SSRStatus(){
 	while true
 	do
 	echo -e "请选择你要删除的账号序号"
-	stty erase '^H' && read -p "(默认取消):" Del_num
+	read -e -p "(默认取消):" Del_num
 	[[ -z "${Del_num}" ]] && echo "已取消..." && exit 1
-	expr ${Del_num} + 0 &>/dev/null
+	echo $((${Del_num}+0)) &>/dev/null
 	if [[ $? -eq 0 ]]; then
 		if [[ ${Del_num} -ge 1 ]] && [[ ${Del_num} -le ${Like_num} ]]; then
 			sed -i "${Del_num}d" ${config_file}
@@ -618,9 +619,9 @@ Modify_SSRStatus(){
 	while true
 	do
 	echo -e "请选择你要修改的账号序号"
-	stty erase '^H' && read -p "(默认取消):" Modify_num
+	read -e -p "(默认取消):" Modify_num
 	[[ -z "${Modify_num}" ]] && echo "已取消..." && exit 1
-	expr ${Modify_num} + 0 &>/dev/null
+	echo $((${Modify_num}+0)) &>/dev/null
 	if [[ $? -eq 0 ]]; then
 		if [[ ${Modify_num} -ge 1 ]] && [[ ${Modify_num} -le ${Like_num} ]]; then
 			set_config_user
@@ -658,9 +659,9 @@ Modify_SSRStatus_disabled(){
 	while true
 	do
 	echo -e "请选择你要启用/禁用的账号序号"
-	stty erase '^H' && read -p "(默认取消):" Modify_num
+	read -e -p "(默认取消):" Modify_num
 	[[ -z "${Modify_num}" ]] && echo "已取消..." && exit 1
-	expr ${Modify_num} + 0 &>/dev/null
+	echo $((${Modify_num}+0)) &>/dev/null
 	if [[ $? -eq 0 ]]; then
 		if [[ ${Modify_num} -ge 1 ]] && [[ ${Modify_num} -le ${Like_num} ]]; then
 			Config_old=$(echo -e "${Like}"|sed -n "${Modify_num}"p)
@@ -708,7 +709,7 @@ Installation_dependency(){
 }
 Install_caddy(){
 	echo -e "是否由脚本自动配置HTTP服务(在线监控网站)[Y/n]"
-	stty erase '^H' && read -p "(默认: Y 自动部署):" caddy_yn
+	read -e -p "(默认: Y 自动部署):" caddy_yn
 	[[ -z "$caddy_yn" ]] && caddy_yn="y"
 	if [[ "${caddy_yn}" == [Yy] ]]; then
 		Set_server
@@ -771,7 +772,7 @@ Uninstall_Web(){
 	check_installed_server_status
 	echo "确定要卸载 SSRStatus 网页文件(自动部署的Caddy并不会删除) ? [y/N]"
 	echo
-	stty erase '^H' && read -p "(默认: n):" unyn
+	read -e -p "(默认: n):" unyn
 	[[ -z ${unyn} ]] && unyn="n"
 	if [[ ${unyn} == [Yy] ]]; then
 		/etc/init.d/caddy stop
@@ -808,27 +809,10 @@ Del_Crontab(){
 	fi
 }
 Update_Shell(){
-	echo -e "当前版本为 [ ${sh_ver} ]，开始检测最新版本..."
-	sh_new_ver=$(wget --no-check-certificate -qO- "https://softs.loan/Bash/ssrstatus.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="softs"
-	[[ -z ${sh_new_ver} ]] && sh_new_ver=$(wget --no-check-certificate -qO- "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ssrstatus.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
-	[[ -z ${sh_new_ver} ]] && echo -e "${Error} 检测最新版本失败 !" && exit 0
-	if [[ ${sh_new_ver} != ${sh_ver} ]]; then
-		echo -e "发现新版本[ ${sh_new_ver} ]，是否更新？[Y/n]"
-		stty erase '^H' && read -p "(默认: y):" yn
-		[[ -z "${yn}" ]] && yn="y"
-		if [[ ${yn} == [Yy] ]]; then
-			if [[ $sh_new_type == "softs" ]]; then
-				wget -N --no-check-certificate https://softs.loan/Bash/ssrstatus.sh && chmod +x ssrstatus.sh
-			else
-				wget -N --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ssrstatus.sh && chmod +x ssrstatus.sh
-			fi
-			echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] !"
-		else
-			echo && echo "	已取消..." && echo
-		fi
-	else
-		echo -e "当前已是最新版本[ ${sh_new_ver} ] !"
-	fi
+	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ssrstatus.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1) && sh_new_type="github"
+	[[ -z ${sh_new_ver} ]] && echo -e "${Error} 无法链接到 Github !" && exit 0
+	wget -N --no-check-certificate "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ssrstatus.sh" && chmod +x ssrstatus.sh
+	echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] !(注意：因为更新方式为直接覆盖当前运行的脚本，所以可能下面会提示一些报错，无视即可)" && exit 0
 }
 menu(){
 echo && echo -e "  SSRStatus 一键安装管理脚本 ${Red_font_prefix}[v${sh_ver}]${Font_color_suffix}
@@ -854,7 +838,7 @@ else
 	echo -e " 当前状态: Web网页 ${Red_font_prefix}未安装${Font_color_suffix}"
 fi
 echo
-stty erase '^H' && read -p " 请输入数字 [0-9]:" num
+read -e -p " 请输入数字 [0-9]:" num
 case "$num" in
 	0)
 	Update_Shell

@@ -46,10 +46,10 @@ install_iptables(){
 		echo -e "${Info} 检测到未安装 iptables，开始安装..."
 		if [[ ${release}  == "centos" ]]; then
 			yum update
-			yum install -y vim iptables
+			yum install -y iptables
 		else
 			apt-get update
-			apt-get install -y vim iptables
+			apt-get install -y iptables
 		fi
 		iptables_exist=$(iptables -V)
 		if [[ ${iptables_exist} = "" ]]; then
@@ -63,28 +63,28 @@ install_iptables(){
 	echo -e "${Info} iptables 配置完毕 !"
 }
 Set_forwarding_port(){
-	stty erase '^H' && read -p "请输入 iptables 欲转发至的 远程端口 [1-65535] (支持端口段 如 2333-6666, 被转发服务器):" forwarding_port
+	read -e -p "请输入 iptables 欲转发至的 远程端口 [1-65535] (支持端口段 如 2333-6666, 被转发服务器):" forwarding_port
 	[[ -z "${forwarding_port}" ]] && echo "取消..." && exit 1
 	echo && echo -e "	欲转发端口 : ${Red_font_prefix}${forwarding_port}${Font_color_suffix}" && echo
 }
 Set_forwarding_ip(){
-		stty erase '^H' && read -p "请输入 iptables 欲转发至的 远程IP(被转发服务器):" forwarding_ip
+		read -e -p "请输入 iptables 欲转发至的 远程IP(被转发服务器):" forwarding_ip
 		[[ -z "${forwarding_ip}" ]] && echo "取消..." && exit 1
 		echo && echo -e "	欲转发服务器IP : ${Red_font_prefix}${forwarding_ip}${Font_color_suffix}" && echo
 }
 Set_local_port(){
 	echo -e "请输入 iptables 本地监听端口 [1-65535] (支持端口段 如 2333-6666)"
-	stty erase '^H' && read -p "(默认端口: ${forwarding_port}):" local_port
+	read -e -p "(默认端口: ${forwarding_port}):" local_port
 	[[ -z "${local_port}" ]] && local_port="${forwarding_port}"
 	echo && echo -e "	本地监听端口 : ${Red_font_prefix}${local_port}${Font_color_suffix}" && echo
 }
 Set_local_ip(){
-	stty erase '^H' && read -p "请输入 本服务器的 网卡IP(注意是网卡绑定的IP，而不仅仅是公网IP，回车自动检测外网IP):" local_ip
+	read -e -p "请输入 本服务器的 网卡IP(注意是网卡绑定的IP，而不仅仅是公网IP，回车自动检测外网IP):" local_ip
 	if [[ -z "${local_ip}" ]]; then
 		local_ip=$(wget -qO- -t1 -T2 ipinfo.io/ip)
 		if [[ -z "${local_ip}" ]]; then
 			echo "${Error} 无法检测到本服务器的公网IP，请手动输入"
-			stty erase '^H' && read -p "请输入 本服务器的 网卡IP(注意是网卡绑定的IP，而不仅仅是公网IP):" local_ip
+			read -e -p "请输入 本服务器的 网卡IP(注意是网卡绑定的IP，而不仅仅是公网IP):" local_ip
 			[[ -z "${local_ip}" ]] && echo "取消..." && exit 1
 		fi
 	fi
@@ -95,7 +95,7 @@ Set_forwarding_type(){
  1. TCP
  2. UDP
  3. TCP+UDP\n"
-	stty erase '^H' && read -p "(默认: TCP+UDP):" forwarding_type_num
+	read -e -p "(默认: TCP+UDP):" forwarding_type_num
 	[[ -z "${forwarding_type_num}" ]] && forwarding_type_num="3"
 	if [[ ${forwarding_type_num} == "1" ]]; then
 		forwarding_type="TCP"
@@ -121,7 +121,7 @@ Set_Config(){
 	欲转发 IP\t: ${Green_font_prefix}${forwarding_ip}${Font_color_suffix}
 	转发类型\t: ${Green_font_prefix}${forwarding_type}${Font_color_suffix}
 ——————————————————————————————\n"
-	stty erase '^H' && read -p "请按任意键继续，如有配置错误请使用 Ctrl+C 退出。" var
+	read -e -p "请按任意键继续，如有配置错误请使用 Ctrl+C 退出。" var
 }
 Add_forwarding(){
 	check_iptables
@@ -168,9 +168,9 @@ Del_forwarding(){
 	while true
 	do
 	View_forwarding
-	stty erase '^H' && read -p "请输入数字 来选择要删除的 iptables 端口转发规则(默认回车取消):" Del_forwarding_num
+	read -e -p "请输入数字 来选择要删除的 iptables 端口转发规则(默认回车取消):" Del_forwarding_num
 	[[ -z "${Del_forwarding_num}" ]] && Del_forwarding_num="0"
-	expr ${Del_forwarding_num} + 0 &>/dev/null
+	echo $((${Del_forwarding_num}+0)) &>/dev/null
 	if [[ $? -eq 0 ]]; then
 		if [[ ${Del_forwarding_num} -ge 1 ]] && [[ ${Del_forwarding_num} -le ${forwarding_total} ]]; then
 			forwarding_type=$(echo -e "${forwarding_text}"| awk '{print $4}' | sed -n "${Del_forwarding_num}p")
@@ -190,7 +190,7 @@ Del_forwarding(){
 Uninstall_forwarding(){
 	check_iptables
 	echo -e "确定要清空 iptables 所有端口转发规则 ? [y/N]"
-	stty erase '^H' && read -p "(默认: n):" unyn
+	read -e -p "(默认: n):" unyn
 	[[ -z ${unyn} ]] && unyn="n"
 	if [[ ${unyn} == [Yy] ]]; then
 		forwarding_text=$(iptables -t nat -vnL PREROUTING|tail -n +3)
@@ -243,22 +243,10 @@ Set_iptables(){
 	fi
 }
 Update_Shell(){
-	echo -e "当前版本为 [ ${sh_ver} ]，开始检测最新版本..."
-	sh_new_ver=$(wget --no-check-certificate -qO- "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/iptables-pf.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1)
-	[[ -z ${sh_new_ver} ]] && echo -e "${Error} 检测最新版本失败 !" && exit 1
-	if [[ ${sh_new_ver} != ${sh_ver} ]]; then
-		echo -e "发现新版本[ ${sh_new_ver} ]，是否更新？[Y/n]"
-		stty erase '^H' && read -p "(默认: y):" yn
-		[[ -z "${yn}" ]] && yn="y"
-		if [[ ${yn} == [Yy] ]]; then
-			wget -N --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/iptables-pf.sh && chmod +x iptables-pf.sh
-			echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] !"
-		else
-			echo && echo "	已取消..." && echo
-		fi
-	else
-		echo -e "当前已是最新版本[ ${sh_new_ver} ] !"
-	fi
+	sh_new_ver=$(wget --no-check-certificate -qO- -t1 -T3 "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/iptables-pf.sh"|grep 'sh_ver="'|awk -F "=" '{print $NF}'|sed 's/\"//g'|head -1)
+	[[ -z ${sh_new_ver} ]] && echo -e "${Error} 无法链接到 Github !" && exit 0
+	wget -N --no-check-certificate "https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/iptables-pf.sh" && chmod +x iptables-pf.sh
+	echo -e "脚本已更新为最新版本[ ${sh_new_ver} ] !(注意：因为更新方式为直接覆盖当前运行的脚本，所以可能下面会提示一些报错，无视即可)" && exit 0
 }
 check_sys
 echo && echo -e " iptables 端口转发一键管理脚本 ${Red_font_prefix}[v${sh_ver}]${Font_color_suffix}
@@ -274,7 +262,7 @@ echo && echo -e " iptables 端口转发一键管理脚本 ${Red_font_prefix}[v${
  ${Green_font_prefix}5.${Font_color_suffix} 删除 iptables 端口转发
 ————————————
 注意：初次使用前请请务必执行 ${Green_font_prefix}1. 安装 iptables${Font_color_suffix}(不仅仅是安装)" && echo
-stty erase '^H' && read -p " 请输入数字 [0-5]:" num
+read -e -p " 请输入数字 [0-5]:" num
 case "$num" in
 	0)
 	Update_Shell

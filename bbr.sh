@@ -38,15 +38,15 @@ check_sys(){
 		release="centos"
     fi
 }
-# 本段获取最新版本的代码来源自: https://teddysun.com/489.html
 Set_latest_new_version(){
 	echo -e "请输入 要下载安装的Linux内核版本(BBR) ${Green_font_prefix}[ 格式: x.xx.xx ，例如: 4.9.96 ]${Font_color_suffix}
 ${Tip} 内核版本列表请去这里获取：${Green_font_prefix}[ http://kernel.ubuntu.com/~kernel-ppa/mainline/ ]${Font_color_suffix}
 建议使用${Green_font_prefix}稳定版本：4.9.XX ${Font_color_suffix}，4.9 以上版本属于测试版，稳定版与测试版同步更新，BBR 加速效果无区别。"
-	stty erase '^H' && read -p "(直接回车，自动获取最新稳定版本):" latest_version
+	read -e -p "(直接回车，自动获取最新稳定版本):" latest_version
 	[[ -z "${latest_version}" ]] && get_latest_new_version
 	echo
 }
+# 本段获取最新版本的代码来源自: https://teddysun.com/489.html
 get_latest_new_version(){
 	echo -e "${Info} 检测稳定版内核最新版本中..."
 	latest_version=$(wget -qO- -t1 -T2 "http://kernel.ubuntu.com/~kernel-ppa/mainline/" | awk -F'\"v' '/v4.9.*/{print $2}' |grep -v '\-rc'| cut -d/ -f1 | sort -V | tail -1)
@@ -111,7 +111,7 @@ del_deb_over(){
 	update-grub
 	addsysctl
 	echo -e "${Tip} 重启VPS后，请运行脚本查看 BBR 是否正常加载，运行命令： ${Green_background_prefix} bash ${file}/bbr.sh status ${Font_color_suffix}"
-	stty erase '^H' && read -p "需要重启VPS后，才能开启BBR，是否现在重启 ? [Y/n] :" yn
+	read -e -p "需要重启VPS后，才能开启BBR，是否现在重启 ? [Y/n] :" yn
 	[[ -z "${yn}" ]] && yn="y"
 	if [[ $yn == [Yy] ]]; then
 		echo -e "${Info} VPS 重启中..."
@@ -129,7 +129,7 @@ installbbr(){
 	fi
 	if [[ "${deb_ver}" != "" ]]; then	
 		if [[ "${deb_ver}" == "${latest_version}" ]]; then
-			echo -e "${Info} 检测到当前内核版本[${${deb_ver}}] 已是最新版本，无需继续 !"
+			echo -e "${Info} 检测到当前内核版本[${deb_ver}] 已是最新版本，无需继续 !"
 			deb_total=`dpkg -l|grep linux-image | awk '{print $2}' | grep -v "${latest_version}" | wc -l`
 			if [[ "${deb_total}" != "0" ]]; then
 				echo -e "${Info} 检测到内核数量异常，存在多余内核，开始删除..."
@@ -208,7 +208,7 @@ stopbbr(){
 	sysctl -p
 	sleep 1s
 	
-	stty erase '^H' && read -p "需要重启VPS后，才能彻底停止BBR，是否现在重启 ? [Y/n] :" yn
+	read -e -p "需要重启VPS后，才能彻底停止BBR，是否现在重启 ? [Y/n] :" yn
 	[[ -z "${yn}" ]] && yn="y"
 	if [[ $yn == [Yy] ]]; then
 		echo -e "${Info} VPS 重启中..."

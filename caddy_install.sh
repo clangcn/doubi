@@ -4,7 +4,7 @@ export PATH
 #=================================================
 #       System Required: CentOS/Debian/Ubuntu
 #       Description: Caddy Install
-#       Version: 1.0.7
+#       Version: 1.0.8
 #       Author: Toyo
 #       Blog: https://doub.io/shell-jc1/
 #=================================================
@@ -32,7 +32,7 @@ check_sys(){
 	elif cat /proc/version | grep -q -E -i "centos|red hat|redhat"; then
 		release="centos"
     fi
-	bit=`uname -m`
+	bit=$(uname -m)
 }
 check_installed_status(){
 	[[ ! -e ${caddy_file} ]] && echo -e "${Error_font_prefix}[错误]${Font_suffix} Caddy 没有安装，请检查 !" && exit 1
@@ -50,14 +50,14 @@ Download_caddy(){
 		extension_all="?license=personal"
 	fi
 	
-	if [[ ${bit} == "i386" ]]; then
-		wget --no-check-certificate -O "caddy_linux.tar.gz" "https://caddyserver.com/download/linux/386${extension_all}" && caddy_bit="caddy_linux_386"
-	elif [[ ${bit} == "i686" ]]; then
-		wget --no-check-certificate -O "caddy_linux.tar.gz" "https://caddyserver.com/download/linux/386${extension_all}" && caddy_bit="caddy_linux_386"
-	elif [[ ${bit} == "x86_64" ]]; then
-		wget --no-check-certificate -O "caddy_linux.tar.gz" "https://caddyserver.com/download/linux/amd64${extension_all}" && caddy_bit="caddy_linux_amd64"
+	if [[ ${bit} == "x86_64" ]]; then
+		wget --no-check-certificate -O "caddy_linux.tar.gz" "https://caddyserver.com/download/linux/amd64${extension_all}"
+	elif [[ ${bit} == "i386" || ${bit} == "i686" ]]; then
+		wget --no-check-certificate -O "caddy_linux.tar.gz" "https://caddyserver.com/download/linux/386${extension_all}"
+	elif [[ ${bit} == "armv7l" ]]; then
+		wget --no-check-certificate -O "caddy_linux.tar.gz" "https://caddyserver.com/download/linux/arm7${extension_all}"
 	else
-		echo -e "${Error_font_prefix}[错误]${Font_suffix} 不支持 ${bit} !" && exit 1
+		echo -e "${Error_font_prefix}[错误]${Font_suffix} 不支持 [${bit}] ! 请向本站反馈[]中的名称，我会看看是否可以添加支持。" && exit 1
 	fi
 	[[ ! -e "caddy_linux.tar.gz" ]] && echo -e "${Error_font_prefix}[错误]${Font_suffix} Caddy 下载失败 !" && exit 1
 	tar zxf "caddy_linux.tar.gz"
@@ -71,14 +71,14 @@ Download_caddy(){
 }
 Service_caddy(){
 	if [[ ${release} = "centos" ]]; then
-		if ! wget --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/other/caddy_centos -O /etc/init.d/caddy; then
+		if ! wget --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/service/caddy_centos -O /etc/init.d/caddy; then
 			echo -e "${Error_font_prefix}[错误]${Font_suffix} Caddy服务 管理脚本下载失败 !" && exit 1
 		fi
 		chmod +x /etc/init.d/caddy
 		chkconfig --add caddy
 		chkconfig caddy on
 	else
-		if ! wget --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/other/caddy_debian -O /etc/init.d/caddy; then
+		if ! wget --no-check-certificate https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/service/caddy_debian -O /etc/init.d/caddy; then
 			echo -e "${Error_font_prefix}[错误]${Font_suffix} Caddy服务 管理脚本下载失败 !" && exit 1
 		fi
 		chmod +x /etc/init.d/caddy
@@ -89,7 +89,7 @@ install_caddy(){
 	check_root
 	if [[ -e ${caddy_file} ]]; then
 		echo && echo -e "${Error_font_prefix}[信息]${Font_suffix} 检测到 Caddy 已安装，是否继续安装(覆盖更新)？[y/N]"
-		stty erase '^H' && read -p "(默认: n):" yn
+		read -e -p "(默认: n):" yn
 		[[ -z ${yn} ]] && yn="n"
 		if [[ ${yn} == [Nn] ]]; then
 			echo && echo "已取消..." && exit 1
@@ -97,8 +97,8 @@ install_caddy(){
 	fi
 	Download_caddy
 	Service_caddy
-	echo && echo -e " Caddy 配置文件：${caddy_conf_file}
- Caddy 日志文件：/tmp/caddy.log
+	echo && echo -e " Caddy 使用命令：${caddy_conf_file}
+ 日志文件：cat /tmp/caddy.log
  使用说明：service caddy start | stop | restart | status
  或者使用：/etc/init.d/caddy start | stop | restart | status
  ${Info_font_prefix}[信息]${Font_suffix} Caddy 安装完成！" && echo
@@ -106,7 +106,7 @@ install_caddy(){
 uninstall_caddy(){
 	check_installed_status
 	echo && echo "确定要卸载 Caddy ? [y/N]"
-	stty erase '^H' && read -p "(默认: n):" unyn
+	read -e -p "(默认: n):" unyn
 	[[ -z ${unyn} ]] && unyn="n"
 	if [[ ${unyn} == [Yy] ]]; then
 		PID=`ps -ef |grep "caddy" |grep -v "grep" |grep -v "init.d" |grep -v "service" |grep -v "caddy_install" |awk '{print $2}'`
